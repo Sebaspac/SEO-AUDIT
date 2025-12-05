@@ -86,20 +86,25 @@ const AuditResult: React.FC<AuditResultProps> = ({ data }) => {
   };
 
   const copyShareLink = () => {
-    // Construct URL based on current origin to support custom domains like seoaudit.newedgebrand.com
+    // Construct URL based on current origin
     const url = new URL(window.location.href);
     
-    // Clear existing params to ensure clean state
+    // Clear existing query params to avoid confusion, we will use Hash
     url.search = '';
     
-    // Add URL param
     const targetDomain = report.domain.startsWith('http') ? report.domain : `https://${report.domain}`;
-    url.searchParams.set('url', targetDomain);
     
-    // Add 7-day expiration (current time + 7 days in ms)
+    // Use Hash Params (#url=...) instead of Search Params (?url=...)
+    // This prevents "File Not Found" 404 errors on static hosts like GitHub Pages
+    const hashParams = new URLSearchParams();
+    hashParams.set('url', targetDomain);
+    
+    // Add 7-day expiration
     const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
     const expiryTimestamp = Date.now() + sevenDaysInMs;
-    url.searchParams.set('expires', expiryTimestamp.toString());
+    hashParams.set('expires', expiryTimestamp.toString());
+    
+    url.hash = hashParams.toString();
 
     navigator.clipboard.writeText(url.toString());
     setCopied(true);

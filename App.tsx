@@ -31,11 +31,19 @@ const App: React.FC = () => {
   }, []);
 
   // Check for URL parameters on mount to support shared links
+  // We prioritize Hash (#) params to support static hosting like GitHub Pages
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
 
-    const params = new URLSearchParams(window.location.search);
+    // 1. Try Hash Params (Preferred for GitHub Pages: domain.com/#url=...)
+    let params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    
+    // 2. Fallback to Query Params (Legacy: domain.com/?url=...)
+    if (!params.has('url')) {
+       params = new URLSearchParams(window.location.search);
+    }
+
     const urlParam = params.get('url');
     const expiresParam = params.get('expires');
     
@@ -67,6 +75,7 @@ const App: React.FC = () => {
     setStatus(AppStatus.IDLE);
     setResult(null);
     setCurrentDomain('');
+    // Clear both search and hash
     window.history.pushState({}, '', window.location.pathname);
   };
 
