@@ -37,8 +37,20 @@ const App: React.FC = () => {
 
     const params = new URLSearchParams(window.location.search);
     const urlParam = params.get('url');
+    const expiresParam = params.get('expires');
     
     if (urlParam) {
+      // Check Expiry Logic
+      if (expiresParam) {
+        const expiryTime = parseInt(expiresParam, 10);
+        // Check if it's a valid number and if current time is past expiry
+        if (!isNaN(expiryTime) && Date.now() > expiryTime) {
+          setError("Dieser Link ist abgelaufen. Der Zugriff war auf 7 Tage begrenzt.");
+          setStatus(AppStatus.ERROR);
+          return;
+        }
+      }
+
       const industryParam = params.get('industry') || undefined;
       const goalParam = params.get('goal') || undefined;
       

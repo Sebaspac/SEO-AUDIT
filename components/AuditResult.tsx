@@ -85,9 +85,21 @@ const AuditResult: React.FC<AuditResultProps> = ({ data }) => {
   };
 
   const copyShareLink = () => {
+    // Construct URL based on current origin to support custom domains like seoaudit.newedgebrand.com
     const url = new URL(window.location.href);
-    url.searchParams.set('url', report.domain.startsWith('http') ? report.domain : `https://${report.domain}`);
-    // Optional: add timestamp to simulate "7 days" logic visually if needed, but the link works forever.
+    
+    // Clear existing params to ensure clean state
+    url.search = '';
+    
+    // Add URL param
+    const targetDomain = report.domain.startsWith('http') ? report.domain : `https://${report.domain}`;
+    url.searchParams.set('url', targetDomain);
+    
+    // Add 7-day expiration (current time + 7 days in ms)
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    const expiryTimestamp = Date.now() + sevenDaysInMs;
+    url.searchParams.set('expires', expiryTimestamp.toString());
+
     navigator.clipboard.writeText(url.toString());
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
