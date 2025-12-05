@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, CheckCircle2, Layout, Loader2, ChevronDown, ChevronUp, AlertCircle, AlertTriangle, CheckCircle, BarChart, ExternalLink, Share2, Copy, Check } from 'lucide-react';
+import { Download, CheckCircle2, Layout, Loader2, ChevronDown, ChevronUp, AlertCircle, AlertTriangle, CheckCircle, BarChart, ExternalLink, Share2, Copy, Check, Eye, EyeOff } from 'lucide-react';
 import { AuditResponse, AuditSection, Priority } from '../types';
 import { jsPDF } from "jspdf";
 
@@ -68,6 +68,7 @@ const AuditResult: React.FC<AuditResultProps> = ({ data }) => {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [copied, setCopied] = useState(false);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   // Initialize all sections as expanded by default
   useEffect(() => {
@@ -332,19 +333,67 @@ const AuditResult: React.FC<AuditResultProps> = ({ data }) => {
            </div>
 
            <div className="bg-slate-100 rounded-xl p-2 border border-slate-200 shadow-inner">
+             
+             {/* Preview Header with Heatmap Toggle */}
+             <div className="flex justify-between items-center mb-2 px-1">
+                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Vorschau</h3>
+                 <button 
+                    onClick={() => setShowHeatmap(!showHeatmap)}
+                    className={`text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-md border font-medium transition-all ${
+                        showHeatmap 
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                 >
+                    {showHeatmap ? <EyeOff className="w-3.5 h-3.5"/> : <Eye className="w-3.5 h-3.5"/>}
+                    {showHeatmap ? 'Heatmap ausblenden' : 'UX-Heatmap anzeigen'}
+                 </button>
+             </div>
+
              <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-white border border-slate-200 group">
                 {/* Simple Browser UI */}
-                <div className="h-6 bg-slate-50 border-b flex items-center px-3 gap-1.5">
+                <div className="h-6 bg-slate-50 border-b flex items-center px-3 gap-1.5 relative z-10">
                    <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                    <div className="w-2 h-2 rounded-full bg-slate-300"></div>
                 </div>
-                <img 
-                  src={screenshotUrl} 
-                  alt="Website Preview" 
-                  className="w-full h-full object-cover object-top"
-                  onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Vorschau'}
-                />
+                
+                <div className="relative w-full h-full">
+                    <img 
+                      src={screenshotUrl} 
+                      alt="Website Preview" 
+                      className="w-full h-full object-cover object-top"
+                      onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/800x600/f1f5f9/94a3b8?text=Vorschau'}
+                    />
+
+                    {/* Heatmap Overlay Simulation */}
+                    {showHeatmap && (
+                        <>
+                            <div className="absolute inset-0 opacity-60 mix-blend-multiply pointer-events-none transition-opacity duration-500" style={{
+                                background: `
+                                    radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.7) 0%, rgba(255, 165, 0, 0.5) 25%, rgba(255, 255, 0, 0.2) 45%, transparent 65%),
+                                    radial-gradient(circle at 80% 20%, rgba(255, 120, 0, 0.5) 0%, rgba(255, 200, 0, 0.3) 30%, transparent 60%),
+                                    radial-gradient(ellipse at 50% 60%, rgba(0, 255, 100, 0.3) 0%, transparent 70%)
+                                `,
+                                filter: 'blur(25px)'
+                            }}></div>
+                            
+                            {/* Legend */}
+                            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-lg text-[10px] font-medium text-slate-600 border border-slate-200 shadow-lg flex items-center gap-3 animate-fade-in z-20">
+                                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-red-500"></div>Hoch</span>
+                                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-400"></div>Mittel</span>
+                                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-green-400"></div>Niedrig</span>
+                            </div>
+                        </>
+                    )}
+                </div>
              </div>
+             
+             {showHeatmap && (
+                 <p className="text-[11px] text-slate-400 mt-2 text-center flex items-center justify-center gap-1">
+                    <AlertCircle className="w-3 h-3"/>
+                    Simulierte Darstellung der Nutzer-Aufmerksamkeit (F-Pattern & Fokus-Zonen).
+                 </p>
+             )}
            </div>
         </div>
       </div>
